@@ -6,6 +6,7 @@ import com.google.firebase.firestore.*;
 
 import android.support.annotation.NonNull;
 
+import org.imperiumlabs.geofirestore.core.ExtraFields;
 import org.imperiumlabs.geofirestore.core.GeoHash;
 import org.imperiumlabs.geofirestore.util.GeoUtils;
 
@@ -55,7 +56,7 @@ public class GeoFirestore {
             if (data == null) {
                 return null;
             }
-            
+
             GeoPoint location = (GeoPoint) data.get("l");
             if (location != null) {
                 return location;
@@ -106,8 +107,8 @@ public class GeoFirestore {
      * @param documentID The documentID of the document to save the location for
      * @param location   The location of this document
      */
-    public void setLocation(String documentID, GeoPoint location, Object extraFields) {
-        this.setLocation(documentID, location, null);
+    public void setLocation(String documentID, GeoPoint location, ExtraFields extraFields) {
+        this.setLocation(documentID, location, extraFields);
     }
 
     /**
@@ -118,7 +119,7 @@ public class GeoFirestore {
      * @param completionListener A listener that is called once the location was successfully saved on the server or an
      *                           error occurred
      */
-    public void setLocation(final String documentID, final GeoPoint location, final Object extraFields, final CompletionListener completionListener) {
+    public void setLocation(final String documentID, final GeoPoint location, final ExtraFields extraFields, final CompletionListener completionListener) {
         if (documentID == null) {
             completionListener.onComplete(new NullPointerException("Document ID is null"));
             return;
