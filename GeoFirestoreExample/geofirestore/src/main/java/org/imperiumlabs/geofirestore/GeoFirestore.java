@@ -129,7 +129,7 @@ public class GeoFirestore {
         Map<String, Object> updates = new HashMap<>();
         updates.put("g", geoHash.getGeoHashString());
         updates.put("l", location);
-        updates.put("d", extraFields);
+        //updates.put("d", extraFields);
         docRef.set(updates, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -168,7 +168,7 @@ public class GeoFirestore {
         Map<String, Object> updates = new HashMap<>();
         updates.put("g", FieldValue.delete());
         updates.put("l", FieldValue.delete());
-        updates.put("d", FieldValue.delete());
+        //updates.put("d", FieldValue.delete());
         DocumentReference docRef = this.getRefForDocumentID(documentID);
         docRef.set(updates, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
