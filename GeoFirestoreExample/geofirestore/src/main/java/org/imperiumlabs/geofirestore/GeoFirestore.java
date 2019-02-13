@@ -3,9 +3,12 @@ package org.imperiumlabs.geofirestore;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.*;
+
 import android.support.annotation.NonNull;
+
 import org.imperiumlabs.geofirestore.core.GeoHash;
 import org.imperiumlabs.geofirestore.util.GeoUtils;
+
 import java.lang.Throwable;
 import java.util.*;
 import java.util.logging.Logger;
@@ -40,7 +43,7 @@ public class GeoFirestore {
          * Called once a location is fetched from the server. On success, the parameter
          * error will be null; in case of an error, the error will be passed to this method.
          *
-         * @param location The location fetched from the server
+         * @param location  The location fetched from the server
          * @param exception The exception or null if no exception occurred
          */
         void onComplete(GeoPoint location, Exception exception);
@@ -49,13 +52,13 @@ public class GeoFirestore {
     public static GeoPoint getLocationValue(DocumentSnapshot documentSnapshot) {
         try {
             Map<String, Object> data = documentSnapshot.getData();
-            List<?> location = (List<?>) data.get("l");
-            Number latitudeObj = (Number) location.get(0);
-            Number longitudeObj = (Number) location.get(1);
-            double latitude = latitudeObj.doubleValue();
-            double longitude = longitudeObj.doubleValue();
-            if (location.size() == 2 && GeoLocation.coordinatesValid(latitude, longitude)) {
-                return new GeoPoint(latitude, longitude);
+            if (data == null) {
+                return null;
+            }
+            
+            GeoPoint location = (GeoPoint) data.get("l");
+            if (location != null) {
+                return location;
             } else {
                 return null;
             }
@@ -101,21 +104,21 @@ public class GeoFirestore {
      * Sets the location of a document.
      *
      * @param documentID The documentID of the document to save the location for
-     * @param location The location of this document
+     * @param location   The location of this document
      */
-    public void setLocation(String documentID, GeoPoint location) {
+    public void setLocation(String documentID, GeoPoint location, Object extraFields) {
         this.setLocation(documentID, location, null);
     }
 
     /**
      * Sets the location of a document.
      *
-     * @param documentID The documentID of the document to save the location for
-     * @param location The location of this document
+     * @param documentID         The documentID of the document to save the location for
+     * @param location           The location of this document
      * @param completionListener A listener that is called once the location was successfully saved on the server or an
      *                           error occurred
      */
-    public void setLocation(final String documentID, final GeoPoint location, final CompletionListener completionListener) {
+    public void setLocation(final String documentID, final GeoPoint location, final Object extraFields, final CompletionListener completionListener) {
         if (documentID == null) {
             completionListener.onComplete(new NullPointerException("Document ID is null"));
             return;
@@ -124,14 +127,15 @@ public class GeoFirestore {
         GeoHash geoHash = new GeoHash(new GeoLocation(location.getLatitude(), location.getLongitude()));
         Map<String, Object> updates = new HashMap<>();
         updates.put("g", geoHash.getGeoHashString());
-        updates.put("l", Arrays.asList(location.getLatitude(), location.getLongitude()));
+        updates.put("l", location);
+        updates.put("d", extraFields);
         docRef.set(updates, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if (completionListener != null){
-                    if (task.isSuccessful()){
+                if (completionListener != null) {
+                    if (task.isSuccessful()) {
                         completionListener.onComplete(null);
-                    }else{
+                    } else {
                         completionListener.onComplete(task.getException());
                     }
                 }
@@ -151,7 +155,7 @@ public class GeoFirestore {
     /**
      * Removes the location of a document from this GeoFirestore.
      *
-     * @param documentID The documentID of the document to remove from this GeoFirestore
+     * @param documentID         The documentID of the document to remove from this GeoFirestore
      * @param completionListener A completion listener that is called once the location is successfully removed
      *                           from the server or an error occurred
      */
@@ -163,14 +167,15 @@ public class GeoFirestore {
         Map<String, Object> updates = new HashMap<>();
         updates.put("g", FieldValue.delete());
         updates.put("l", FieldValue.delete());
+        updates.put("d", FieldValue.delete());
         DocumentReference docRef = this.getRefForDocumentID(documentID);
         docRef.set(updates, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if (completionListener != null){
-                    if (task.isSuccessful()){
+                if (completionListener != null) {
+                    if (task.isSuccessful()) {
                         completionListener.onComplete(null);
-                    }else{
+                    } else {
                         completionListener.onComplete(task.getException());
                     }
                 }
@@ -182,7 +187,7 @@ public class GeoFirestore {
      * Gets the current location for a document and calls the callback with the current value.
      *
      * @param documentID The documentID of the document whose location to get
-     * @param callback The callback that is called once the location is retrieved
+     * @param callback   The callback that is called once the location is retrieved
      */
     public void getLocation(String documentID, final LocationCallback callback) {
         this.getRefForDocumentID(documentID).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -210,7 +215,7 @@ public class GeoFirestore {
      *
      * @param center The center of the query
      * @param radius The radius of the query, in kilometers. The maximum radius that is
-     * supported is about 8587km. If a radius bigger than this is passed we'll cap it.
+     *               supported is about 8587km. If a radius bigger than this is passed we'll cap it.
      * @return The new GeoQuery object
      */
     public GeoQuery queryAtLocation(GeoPoint center, double radius) {
