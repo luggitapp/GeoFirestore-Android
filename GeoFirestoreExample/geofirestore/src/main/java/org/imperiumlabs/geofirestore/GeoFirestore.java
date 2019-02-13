@@ -108,7 +108,7 @@ public class GeoFirestore {
      * @param location   The location of this document
      */
     public void setLocation(String documentID, GeoPoint location, ExtraFields extraFields) {
-        this.setLocation(documentID, location, extraFields);
+        this.setLocation(documentID, location, extraFields, null);
     }
 
     /**
