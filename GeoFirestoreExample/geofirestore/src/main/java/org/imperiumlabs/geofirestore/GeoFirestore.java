@@ -4,7 +4,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.*;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.imperiumlabs.geofirestore.core.ExtraFields;
 import org.imperiumlabs.geofirestore.core.GeoHash;
